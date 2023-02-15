@@ -77,7 +77,10 @@ If you find Deformable DETR useful in your research, please consider citing:
     ```bash
     conda activate deformable_detr
     ```
-  
+* CUSTOM to install torchvision>=0.6.1
+    ```bash
+    pip install torch==1.8.1+cu111 torchvision==0.9.1+cu111 torchaudio==0.8.1 -f https://download.pytorch.org/whl/torch_stable.html
+    ```
 * PyTorch>=1.5.1, torchvision>=0.6.1 (following instructions [here](https://pytorch.org/))
 
     For example, if your CUDA version is 9.2, you could install pytorch and torchvision as following:

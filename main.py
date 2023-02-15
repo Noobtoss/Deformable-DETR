@@ -123,6 +123,12 @@ def get_args_parser():
     parser.add_argument('--num_workers', default=2, type=int)
     parser.add_argument('--cache_mode', default=False, action='store_true', help='whether to cache images on memory')
 
+    # ------------------------Semmel------------------------
+
+    parser.add_argument('--num_classes', default=19, help='start epoch')
+
+    # ------------------------Semmel------------------------
+
     return parser
 
 
@@ -132,7 +138,6 @@ def main(args):
 
     if args.frozen_weights is not None:
         assert args.masks, "Frozen training is meant for segmentation only"
-    print(args)
 
     device = torch.device(args.device)
 
@@ -259,16 +264,68 @@ def main(args):
             test_stats, coco_evaluator = evaluate(
                 model, criterion, postprocessors, data_loader_val, base_ds, device, args.output_dir
             )
-    
+    # ------------------------Semmel------------------------
+
+    import sys
+    import os
+
+    # ------------------------Semmel------------------------
+    # hack reinitialize of class_embed (not working if two_stage)
+
+    # from torch import nn
+    # import math
+    # import copy
+
+    # def _get_clones(module, N):
+    #     return nn.ModuleList([copy.deepcopy(module) for i in range(N)])
+
+    # num_classes= 18+1
+    # prior_prob = 0.01
+    # bias_value = -math.log((1 - prior_prob) / prior_prob)
+    # new_class_embed = nn.Linear(model.class_embed[0].in_features, num_classes)
+    # new_class_embed.bias.data = torch.ones(num_classes) * bias_value
+
+    # num_pred = model.transformer.decoder.num_layers
+    # if args.with_box_refine:
+    #        new_class_embed = _get_clones(new_class_embed, num_pred)
+    # else:
+    #         new_class_embed = nn.ModuleList([new_class_embed for _ in range(num_pred)])
+
+    # model.class_embed = new_class_embed
+
+    # model.to(device)
+
+    # args.semmel = True
+    # _, criterion, _ = build_model(args)
+
+    # model_without_ddp = model
+
+    # ------------------------Semmel------------------------
+
     if args.eval:
         test_stats, coco_evaluator = evaluate(model, criterion, postprocessors,
                                               data_loader_val, base_ds, device, args.output_dir)
         if args.output_dir:
+
+            temp = sys.stdout
+            sys.stdout = open(os.path.join(output_dir,'mAP.txt'),'wt')
+            coco_evaluator.summarize()
+            sys.stdout = temp
+
             utils.save_on_master(coco_evaluator.coco_eval["bbox"].eval, output_dir / "eval.pth")
+
         return
 
     print("Start training")
     start_time = time.time()
+
+    # ------------------------Semmel------------------------
+
+    best_model = None
+    best_loss = 666666
+
+    # ------------------------Semmel------------------------
+
     for epoch in range(args.start_epoch, args.epochs):
         if args.distributed:
             sampler_train.set_epoch(epoch)
@@ -312,6 +369,56 @@ def main(args):
                     for name in filenames:
                         torch.save(coco_evaluator.coco_eval["bbox"].eval,
                                    output_dir / "eval" / name)
+
+        # ------------------------Semmel------------------------
+
+        if args.output_dir:
+
+            (output_dir / 'weights').mkdir(exist_ok=True)
+
+            if best_model is None or log_stats['test_loss'] < best_loss:
+
+                best_model = {'model': model_without_ddp,
+                        'optimizer': optimizer,
+                        'lr_scheduler': lr_scheduler,
+                        'epoch': epoch,
+                        'args': args}
+
+                best_loss = log_stats['test_loss']
+
+                utils.save_on_master({
+                    'model' : best_model['model'].state_dict(),
+                    'optimizer': best_model['optimizer'].state_dict(),
+                    'lr_scheduler': best_model['lr_scheduler'].state_dict(),
+                    'epoch': best_model['epoch'],
+                    'args': best_model['args'],
+                    }, output_dir / 'weights/best.pth')
+
+                temp = sys.stdout
+                sys.stdout = open(os.path.join(output_dir,'best_mAP.txt'),'wt')
+                coco_evaluator.summarize()
+                sys.stdout = temp
+
+        # ------------------------Semmel------------------------
+
+    # ------------------------Semmel------------------------
+
+    if args.output_dir:
+
+        utils.save_on_master({
+            'model': model_without_ddp.state_dict(),
+            'optimizer': optimizer.state_dict(),
+            'lr_scheduler': lr_scheduler.state_dict(),
+            'epoch': epoch,
+            'args': args,
+            }, output_dir / 'weights/last.pth')
+
+        temp = sys.stdout
+        sys.stdout = open(os.path.join(output_dir,'last_mAP.txt'),'wt')
+        coco_evaluator.summarize()
+        sys.stdout = temp
+
+    # ------------------------Semmel------------------------
 
     total_time = time.time() - start_time
     total_time_str = str(datetime.timedelta(seconds=int(total_time)))

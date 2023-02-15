@@ -1,0 +1,9 @@
+R-*
+T-*
+U-*
+*.out
+.DS_Store
+*.pth
+.idea/*
+.runs/*
+*.swp

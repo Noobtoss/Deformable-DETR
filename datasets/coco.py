@@ -36,7 +36,11 @@ class CocoDetection(TvCocoDetection):
         target = {'image_id': image_id, 'annotations': target}
         img, target = self.prepare(img, target)
         if self._transforms is not None:
+            print("image type: ", type(img))
+            print("target type: ", type(target))
             img, target = self._transforms(img, target)
+            print("image type: ", type(img))
+            print("target type: ", type(target))
         return img, target
 
 
@@ -159,8 +163,8 @@ def build(image_set, args):
     assert root.exists(), f'provided COCO path {root} does not exist'
     mode = 'instances'
     PATHS = {
-        "train": (root / "train2017", root / "annotations" / f'{mode}_train2017.json'),
-        "val": (root / "val2017", root / "annotations" / f'{mode}_val2017.json'),
+        "train": (root / "train", root / "annotations" / f'{mode}_train.json'),
+        "val": (root / "val", root / "annotations" / f'{mode}_val.json'),
     }
 
     img_folder, ann_file = PATHS[image_set]
