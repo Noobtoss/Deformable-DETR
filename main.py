@@ -265,11 +265,6 @@ def main(args):
                 model, criterion, postprocessors, data_loader_val, base_ds, device, args.output_dir
             )
     # ------------------------Semmel------------------------
-
-    import sys
-    import os
-
-    # ------------------------Semmel------------------------
     # hack reinitialize of class_embed (not working if two_stage)
 
     # from torch import nn
@@ -301,6 +296,9 @@ def main(args):
     # model_without_ddp = model
 
     # ------------------------Semmel------------------------
+
+    import sys
+    import os
 
     if args.eval:
         test_stats, coco_evaluator = evaluate(model, criterion, postprocessors,
