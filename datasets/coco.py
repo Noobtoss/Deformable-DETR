@@ -21,7 +21,7 @@ from pycocotools import mask as coco_mask
 from .torchvision_datasets import CocoDetection as TvCocoDetection
 from util.misc import get_local_rank, get_local_size
 import datasets.transforms as T
-
+import datasets.augmentations as A
 
 class CocoDetection(TvCocoDetection):
     def __init__(self, img_folder, ann_file, transforms, return_masks, cache_mode=False, local_rank=0, local_size=1):
@@ -32,11 +32,6 @@ class CocoDetection(TvCocoDetection):
 
     def __getitem__(self, idx):
         img, target = super(CocoDetection, self).__getitem__(idx)
-        print("image type: ", type(img))
-        print("target type: ", type(target))
-        print("image shape: ", img.shape)
-        print("target shape: ", target.shape)
-        8==D
         image_id = self.ids[idx]
         target = {'image_id': image_id, 'annotations': target}
         img, target = self.prepare(img, target)
@@ -68,7 +63,6 @@ class ConvertCocoPolysToMask(object):
 
     def __call__(self, image, target):
         w, h = image.size
-
         image_id = target["image_id"]
         image_id = torch.tensor([image_id])
 
@@ -147,6 +141,7 @@ def make_coco_transforms(image_set):
                     T.RandomResize(scales, max_size=1333),
                 ])
             ),
+            A.Albumentations(),           
             normalize,
         ])
 

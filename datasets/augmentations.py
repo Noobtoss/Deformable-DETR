@@ -6,6 +6,7 @@ class Albumentations: # Semmel
     # YOLOv5 Albumentations class (optional, only used if package is installed)
     def __init__(self):
         self.transform = None
+        self.transform_pre = None
 
         hyp = type('', (), {})()
         hyp.semmel_flag = 7
@@ -148,6 +149,7 @@ class Albumentations: # Semmel
                     new = random.choice(self.transform)(image=im, bboxes=labels[:, 1:], class_labels=labels[:, 0]) # transformed
                 else:
                     new = self.transform(image=im, bboxes=labels[:, 1:], class_labels=labels[:, 0])  # transformed
-                im, labels = new['image'], np.array([[c, *b] for c, b in zip(new['class_labels'], new['bboxes'])])
 
+                if len(new["class_labels"]) > 0: # skip update if no bbox in new im
+                    im, labels = new['image'], np.array([[c, *b] for c, b in zip(new['class_labels'], new['bboxes'])])
         return im, labels

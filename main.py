@@ -264,6 +264,7 @@ def main(args):
             test_stats, coco_evaluator = evaluate(
                 model, criterion, postprocessors, data_loader_val, base_ds, device, args.output_dir
             )
+    
     # ------------------------Semmel------------------------
     # hack reinitialize of class_embed (not working if two_stage)
 
@@ -294,7 +295,6 @@ def main(args):
     # _, criterion, _ = build_model(args)
 
     # model_without_ddp = model
-
     # ------------------------Semmel------------------------
 
     import sys
