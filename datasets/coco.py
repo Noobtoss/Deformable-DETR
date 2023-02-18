@@ -32,15 +32,16 @@ class CocoDetection(TvCocoDetection):
 
     def __getitem__(self, idx):
         img, target = super(CocoDetection, self).__getitem__(idx)
+        print("image type: ", type(img))
+        print("target type: ", type(target))
+        print("image shape: ", img.shape)
+        print("target shape: ", target.shape)
+        8==D
         image_id = self.ids[idx]
         target = {'image_id': image_id, 'annotations': target}
         img, target = self.prepare(img, target)
         if self._transforms is not None:
-            print("image type: ", type(img))
-            print("target type: ", type(target))
             img, target = self._transforms(img, target)
-            print("image type: ", type(img))
-            print("target type: ", type(target))
         return img, target
 
 

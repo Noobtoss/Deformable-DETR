@@ -2,12 +2,12 @@
 #SBATCH --job-name=defDETR       # Kurzname des Jobs
 #SBATCH --output=R-%j.out
 #SBATCH --partition=p2           #--partition=p2
-#SBATCH --qos=gpuultimate
+#SBATCH --qos=ultimate
 #SBATCH --gres=gpu:1
 #SBATCH --nodes=1                # Anzahl Knoten
 #SBATCH --ntasks=1               # Gesamtzahl der Tasks über alle Knoten hinweg
 #SBATCH --cpus-per-task=4        # CPU Kerne pro Task (>1 für multi-threaded Tasks)
-#SBATCH --mem=64G                # RAM pro CPU Kern #20G #32G #64G
+#SBATCH --mem=6G                # RAM pro CPU Kern #20G #32G #64G
 
 batch=6 #16 #32 #128
 epochs=100
