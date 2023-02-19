@@ -2,6 +2,19 @@ import random
 import numpy as np
 import torch
 
+import torchvision.transforms.functional as F
+
+
+class ToNp(object):
+    def __call__(self, img, target):
+        return np.asarray(img), {k: np.asarray(v) for k, v in target.items()}
+
+
+class ToTensor(object):
+    def __call__(self, img, target):
+        return img, {k: torch.from_numpy(v) for k, v in target.items()}
+
+
 class Albumentations: # Semmel
     # YOLOv5 Albumentations class (optional, only used if package is installed)
     def __init__(self):
@@ -20,7 +33,7 @@ class Albumentations: # Semmel
                 
                 T = [
                     A.Blur(p=hyp.semmel_prob),
-                    A.MedianBlur(p=hyp.semmel_prob),
+                    A.MedianBlur(blur_limit=5, p=hyp.semmel_prob), # Semmel blur_limit=5 had to be changed for some reason
                     A.ToGray(p=hyp.semmel_prob),
                     A.CLAHE(p=hyp.semmel_prob),
                     A.RandomBrightnessContrast(p=0.0),
@@ -102,7 +115,7 @@ class Albumentations: # Semmel
                     A.ShiftScaleRotate(shift_limit=0.0, scale_limit=(-0.4, 0.1), rotate_limit=0, interpolation=1, border_mode=0, rotate_method='ellipse', p=hyp.semmel_prob*4),
                     A.ShiftScaleRotate(shift_limit=0.0, scale_limit=0.2, rotate_limit=45, interpolation=1, border_mode=0, rotate_method='ellipse', p=hyp.semmel_prob*4)]
 
-                self.transform = A.Compose(T, bbox_params=A.BboxParams(format='yolo', min_area=100, label_fields=['class_labels']))
+                self.transform = A.Compose(T, bbox_params=A.BboxParams(format='pascal_voc', min_area=100, label_fields=['class_labels']))
 
             if hyp.semmel_flag == 6:
 
@@ -126,7 +139,7 @@ class Albumentations: # Semmel
                     A.ShiftScaleRotate(shift_limit=0.0, scale_limit=(-0.4, 0.1), rotate_limit=0, interpolation=1, border_mode=0, rotate_method='ellipse', p=hyp.semmel_prob*4),
                     A.ShiftScaleRotate(shift_limit=0.0, scale_limit=0.2, rotate_limit=45, interpolation=1, border_mode=0, rotate_method='ellipse', p=hyp.semmel_prob*4),
                     A.Blur(p=hyp.semmel_prob),
-                    A.MedianBlur(p=hyp.semmel_prob),
+                    A.MedianBlur(blur_limit=5, p=hyp.semmel_prob), # Semmel blur_limit=5 had to be changed for some reason
                     A.ToGray(p=hyp.semmel_prob),
                     A.CLAHE(p=hyp.semmel_prob),
                     A.RandomBrightnessContrast(p=0.0),
@@ -140,16 +153,26 @@ class Albumentations: # Semmel
             pass
 
     def __call__(self, im, labels, p=1.0):
+        im, labels = ToNp()(im, labels)
+        h, w = im.shape[:2]
+        cls = labels['labels']
+        bboxes = labels['boxes']
+        
         if random.random() < p:
             if self.transform_pre:
                 new = self.transform_pre(image=im) # transformed
                 im = new['image']
             if self.transform:
                 if isinstance(self.transform, list):
-                    new = random.choice(self.transform)(image=im, bboxes=labels[:, 1:], class_labels=labels[:, 0]) # transformed
+                    new = random.choice(self.transform)(image=im, bboxes=bboxes, class_labels=cls) # transformed
                 else:
-                    new = self.transform(image=im, bboxes=labels[:, 1:], class_labels=labels[:, 0])  # transformed
+                    new = self.transform(image=im, bboxes=bboxes, class_labels=cls) # transformed
+                
+                if len(new['class_labels']) > 0: # skip update if no bbox in new im
+                    im = new['image']
+                    labels['labels'] = np.array(new['class_labels'])
+                    labels['boxes'] = np.array(new['bboxes']).astype(int)
 
-                if len(new["class_labels"]) > 0: # skip update if no bbox in new im
-                    im, labels = new['image'], np.array([[c, *b] for c, b in zip(new['class_labels'], new['bboxes'])])
+        im, labels = ToTensor()(im, labels)
+        
         return im, labels

@@ -141,7 +141,7 @@ def make_coco_transforms(image_set):
                     T.RandomResize(scales, max_size=1333),
                 ])
             ),
-            A.Albumentations(),           
+            A.Albumentations(),
             normalize,
         ])
 
