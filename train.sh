@@ -52,9 +52,7 @@ conda activate deformable_detr
 
 start_epoch=0 #pretrained model (given in weights) knows that it was trained for 50 epochs. Fix to continue training past the 50 epochs.
 
-srun python main.py --batch_size $batch --epochs $(($start_epoch + $epochs)) --coco_path $data --resume $weights --output_dir ./runs/train/$runName-$SLURM_JOB_ID --start_epoch $start_epoch --cache_mode # --eval
-
-exit
+srun python main.py --batch_size $batch --epochs $(($start_epoch + $epochs + 1)) --coco_path $data --resume $weights --output_dir ./runs/train/$runName-$SLURM_JOB_ID --start_epoch $start_epoch --cache_mode # --eval
 
 for filename in $data*; do
 

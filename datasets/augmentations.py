@@ -15,6 +15,17 @@ class ToTensor(object):
         return img, {k: torch.from_numpy(v) for k, v in target.items()}
 
 
+def bbox_over_underflow_hotfix(bboxes, w, h, degree=0.1): # hotfix since np.asarray changes bbox values
+    
+    bboxes[:,[0,1]] = bboxes[:,[0,1]] - degree
+    bboxes[:,[2,3]] = bboxes[:,[2,3]] + degree
+
+    bboxes[:,[0,2]] = np.clip(bboxes[:,[0,2]], 0, w)
+    bboxes[:,[1,3]] = np.clip(bboxes[:,[1,3]], 0, h)
+    
+    return bboxes
+
+
 class Albumentations: # Semmel
     # YOLOv5 Albumentations class (optional, only used if package is installed)
     def __init__(self):
@@ -153,11 +164,15 @@ class Albumentations: # Semmel
             pass
 
     def __call__(self, im, labels, p=1.0):
+        
         im, labels = ToNp()(im, labels)
+        
         h, w = im.shape[:2]
         cls = labels['labels']
         bboxes = labels['boxes']
-        
+
+        bboxes = bbox_over_underflow_hotfix(bboxes, w, h)
+
         if random.random() < p:
             if self.transform_pre:
                 new = self.transform_pre(image=im) # transformed
