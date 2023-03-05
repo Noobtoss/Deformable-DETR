@@ -9,7 +9,7 @@
 #SBATCH --cpus-per-task=4        # CPU Kerne pro Task (>1 für multi-threaded Tasks)
 #SBATCH --mem=64G                # RAM pro CPU Kern #20G #32G #64G
 
-batch=6
+batch=6 #18
 data=/mnt/md0/user/schmittth/datasets/semmel/cocoSetups640/Semmel38 # /mnt/md0/user/schmittth/coco # /mnt/md0/user/schmittth/yolov7/data/coco.yaml
 weights=semmel_r50_deformable_detr-checkpoint.pth
 name=None
