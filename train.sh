@@ -11,7 +11,7 @@
 
 batch=4 #16 #32 #128
 epochs=150
-data=/mnt/md0/user/schmittth/datasets/semmel/cocoSetups640/Semmel38 # /mnt/md0/user/schmittth/coco # /mnt/md0/user/schmittth/yolov7/data/coco.yaml
+data=/mnt/md0/user/schmittth/mueller2/datasets/semmel/cocoSetups640/Semmel38 # /mnt/md0/user/schmittth/coco # /mnt/md0/user/schmittth/yolov7/data/coco.yaml
 weights=semmel_r50_deformable_detr-checkpoint.pth
 name=None
 
